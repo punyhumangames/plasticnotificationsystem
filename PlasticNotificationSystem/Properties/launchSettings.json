@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "PlasticNotificationSystem": {
+      "commandName": "Project",
+      "commandLineArgs": "-t PlasticNotificationSystem.TriggerEvents.CheckinTrigger -o PlasticNotificationSystem.Discord.DiscordNotifier"
+    }
+  }
+}

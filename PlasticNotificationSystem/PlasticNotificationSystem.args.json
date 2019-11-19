@@ -1,0 +1,22 @@
+{
+  "FileVersion": 2,
+  "Id": "b41ca8e6-4b7c-4e80-a142-ed778ad0242f",
+  "Items": [
+    {
+      "Id": "458d1279-951a-44c8-bf27-5633c65c6c0b",
+      "Command": "-t"
+    },
+    {
+      "Id": "68b1aa27-46ea-43c8-875d-c82702640ae5",
+      "Command": "PlasticNotificationSystem.TriggerEvents.CheckinTrigger"
+    },
+    {
+      "Id": "44e26ae1-6b3b-4784-80de-cac1a5686c93",
+      "Command": "-o"
+    },
+    {
+      "Id": "88d595a3-eea1-4965-b920-453e17819dc7",
+      "Command": "PlasticNotificationSystem.Discord.DiscordNotifier"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+﻿[
+  {
+    "Name": "A Plastic Test",
+    "URL": "WEBHOOK HERE",
+    "ShowDetails": true,
+    "ShowAuthor": true,
+    "ShowServer": true,
+    "ShowAllFileChanges": true,
+    "NumDetails": 15
+  }
+]
+  
