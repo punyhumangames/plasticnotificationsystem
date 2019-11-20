@@ -83,6 +83,8 @@ namespace PlasticNotificationSystem
 
             Logger.Info("Finished executing Trigger");
             NLog.LogManager.Flush();
+
+            Environment.Exit(0);
         }
 
         private static string ReadTriggerTextFromStdIn()

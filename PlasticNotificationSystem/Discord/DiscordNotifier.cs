@@ -102,20 +102,24 @@ namespace PlasticNotificationSystem.Discord
 
                     if(Details.FirstOrDefault() != null)
                     {
+                        bool HasDirectories = true;
+
                         //Strip out directory changes if we are a FileChange and we don't want directory changes
                         if (Details.First() is IWithFileChange)
                         {
-                            if (!Webhook.ShowAllFileChanges)
+                            bool HasFiles = Details.Count(x => (x as IWithFileChange).FileType == FileType.File) > 0;
+                            if (!Webhook.ShowAllFileChanges && HasFiles)
                             {
                                 Details = Details.Where(x => (x as IWithFileChange).FileType == FileType.File);
+                                HasDirectories = false;
                             }
-                        }
+                        }                       
 
                         Logger.Info("Appending {0} Details. Num Details is {1}", Details.Count(), Webhook.NumDetails);
                         if(Details.Count() > Webhook.NumDetails)
                         {
                             string AndDirectories = "";
-                            if(Webhook.ShowAllFileChanges)
+                            if(HasDirectories)
                             {
                                 AndDirectories = " and Directories";
                             }
