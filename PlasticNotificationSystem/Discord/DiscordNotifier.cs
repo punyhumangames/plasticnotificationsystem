@@ -69,13 +69,15 @@ namespace PlasticNotificationSystem.Discord
 
         public void NotifyTrigger(ITriggerEvent Event)
         {
+
             foreach (DiscordNotifierConfig Webhook in Config)
             {
                 EmbedBuilder EmbedBuilder = new EmbedBuilder()
-                .WithTitle(Event.Title)
-                .WithDescription(Event.Body)                
+                .WithTitle(Event.Title.ChopString(EmbedBuilder.MaxTitleLength))
+                .WithDescription(Event.Body.ChopString(EmbedBuilder.MaxDescriptionLength))                
                 .WithCurrentTimestamp();
 
+                
                 string Footer = "";
 
                 if(Webhook.ShowAuthor)
@@ -124,40 +126,82 @@ namespace PlasticNotificationSystem.Discord
                                 AndDirectories = " and Directories";
                             }
 
-                            EmbedBuilder.Description += string.Format("{1}{1}{1}Showing {2}/{0} Files{3}", Details.Count(), Environment.NewLine, Webhook.NumDetails, AndDirectories);
+                            
+                            string ExtraDetails = string.Format("{1}{1}{1}Showing {2}/{0} Files{3}", Details.Count(), Environment.NewLine, Webhook.NumDetails, AndDirectories);
+
+                            if(EmbedBuilder.Description.Length + ExtraDetails.Length > EmbedBuilder.MaxDescriptionLength)
+                            {
+                                EmbedBuilder.Description = EmbedBuilder.Description.ChopString(EmbedBuilder.MaxDescriptionLength - ExtraDetails.Length - 5);                                
+                            }
+
+                            EmbedBuilder.Description += ExtraDetails;
                             Details = Details.Take(Webhook.NumDetails);
                             Logger.Info("Too many details, limiting to {0} Details", Details.Count());
                         }
 
                         if (Details.First() is IWithFileChange)
-                        {                           
+                        {
+                            int FileNameLength =  EmbedFieldBuilder.MaxFieldValueLength / Details.Count();
+
                             EmbedFieldBuilder[] Fields = new EmbedFieldBuilder[]
                             {
                                 new EmbedFieldBuilder().WithName("Operation")
                                     .WithValue(string.Join(Environment.NewLine, 
-                                        Details.Select(x => (x as IWithFileChange).FileOperation.ToString())))
+                                        Details.Select(x => (x as IWithFileChange).FileOperation.ToString())).ChopString(EmbedFieldBuilder.MaxFieldValueLength))
                                     .WithIsInline(true),
                                 new EmbedFieldBuilder().WithName("File Name")
                                     .WithValue(string.Join(Environment.NewLine,
-                                        Details.Select(x => (x as IWithFileChange).FileName.ToString())))
+                                        Details.Select(x => (x as IWithFileChange).FileName.ToString().SubChopString(FileNameLength))).ChopString(EmbedFieldBuilder.MaxFieldValueLength))
                                     .WithIsInline(true),
                                 new EmbedFieldBuilder().WithName("Repository/Branch")
                                     .WithValue(string.Join(Environment.NewLine,
-                                        Details.Select(x => (x as IWithFileChange).Repository+(x as IWithFileChange).Branch)))
+                                        Details.Select(x => (x as IWithFileChange).Repository+(x as IWithFileChange).Branch)).ChopString(EmbedFieldBuilder.MaxFieldValueLength))
                                     .WithIsInline(true),
-                            };
+                            };                           
+
                             EmbedBuilder.WithFields(Fields);
                         }
                         else
                         {
-                            EmbedBuilder.WithFields(new EmbedFieldBuilder().WithName("Details").WithValue(string.Join(Environment.NewLine, Details.Select(x => x.ToString()))));
+                            EmbedBuilder.WithFields(new EmbedFieldBuilder().WithName("Details").WithValue(string.Join(Environment.NewLine, Details.Select(x => x.ToString())).ChopString(EmbedFieldBuilder.MaxFieldValueLength)));
                         }
                         
                     }                   
                 }
+
+                //Last chance to catch an embed that is too big.  
+                if(EmbedBuilder.Length > EmbedBuilder.MaxEmbedLength)
+                {
+                    int diff = EmbedBuilder.Length - EmbedBuilder.MaxEmbedLength;
+
+                    //If we can't chop down the description, drop the fields
+                    if (EmbedBuilder.Length - EmbedBuilder.Description.Length > EmbedBuilder.MaxEmbedLength)
+                    {                        
+                        EmbedBuilder.Fields.Clear();
+
+                        //Recompute the diff
+                        diff = EmbedBuilder.Length - EmbedBuilder.MaxEmbedLength;
+                    }
+
+                    //If we can chop the description down, Chop it!
+                    if (EmbedBuilder.Description.Length > diff)
+                    {
+                        EmbedBuilder.Description = EmbedBuilder.Description.ChopString(EmbedBuilder.Description.Length - diff);
+                    }
+
+                }
                 
+
                 DiscordWebhookClient c = new DiscordWebhookClient(Webhook.URL);
-                c.SendMessageAsync(embeds: new Embed[] { EmbedBuilder.Build() }, username: Webhook.Name).Wait();
+                if(EmbedBuilder.Length < EmbedBuilder.MaxEmbedLength)
+                {
+                    c.SendMessageAsync(embeds: new Embed[] { EmbedBuilder.Build() }, username: Webhook.Name).Wait();
+                }
+                else
+                {
+                    c.SendMessageAsync(text: "Attempted to send an embed for '" + Event.Title + "' but failed!", username: Webhook.Name).Wait();
+                }
+                
             }
         }
 
