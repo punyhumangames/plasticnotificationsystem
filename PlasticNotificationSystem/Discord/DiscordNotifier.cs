@@ -195,11 +195,11 @@ namespace PlasticNotificationSystem.Discord
                 DiscordWebhookClient c = new DiscordWebhookClient(Webhook.URL);
                 if(EmbedBuilder.Length < EmbedBuilder.MaxEmbedLength)
                 {
-                    c.SendMessageAsync(embeds: new Embed[] { EmbedBuilder.Build() }, username: Webhook.Name).Wait();
+                    c.SendMessageAsync(embeds: new Embed[] { EmbedBuilder.Build() }, username: Webhook.Name).Wait(1000 * 15);
                 }
                 else
                 {
-                    c.SendMessageAsync(text: "Attempted to send an embed for '" + Event.Title + "' but failed!", username: Webhook.Name).Wait();
+                    c.SendMessageAsync(text: "Attempted to send an embed for '" + Event.Title + "' but failed!", username: Webhook.Name).Wait(1000 * 15);
                 }
                 
             }
