@@ -193,9 +193,11 @@ namespace PlasticNotificationSystem.Discord
                 
 
                 DiscordWebhookClient c = new DiscordWebhookClient(Webhook.URL);
-                if(EmbedBuilder.Length < EmbedBuilder.MaxEmbedLength)
+                Embed e = EmbedBuilder.Build();                
+
+                if(e.Length < EmbedBuilder.MaxEmbedLength)
                 {
-                    c.SendMessageAsync(embeds: new Embed[] { EmbedBuilder.Build() }, username: Webhook.Name).Wait(1000 * 15);
+                    c.SendMessageAsync(embeds: new Embed[] { e }, username: Webhook.Name).Wait(1000 * 15);
                 }
                 else
                 {
