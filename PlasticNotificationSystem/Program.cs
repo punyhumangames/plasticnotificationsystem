@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Text;
 using PlasticNotificationSystem.TriggerEvents;
+using System.Timers;
 
 namespace PlasticNotificationSystem
 {
@@ -36,8 +37,14 @@ namespace PlasticNotificationSystem
     {
         static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
+        const int ExecutionMaxSeconds = 30;
+
         static void Main(string[] args)
-        {                                   
+        {
+            Timer timer = new Timer(1000 * ExecutionMaxSeconds);
+            timer.Elapsed += Timer_Elapsed;
+            timer.Start();
+
             ConfigureLogger();
             Logger.Info("Starting with: " + string.Join(' ', args));
             AppDomain.CurrentDomain.UnhandledException += (object Sender, UnhandledExceptionEventArgs args) =>
@@ -84,7 +91,15 @@ namespace PlasticNotificationSystem
             Logger.Info("Finished executing Trigger");
             NLog.LogManager.Flush();
 
+            timer.Stop();
+
             Environment.Exit(0);
+        }
+
+        private static void Timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Logger.Info("Failed to finish notifying after {0} seconds, terminating", ExecutionMaxSeconds);
+            Environment.Exit(-1);
         }
 
         private static string ReadTriggerTextFromStdIn()
